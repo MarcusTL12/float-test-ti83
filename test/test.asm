@@ -19,3 +19,5 @@ main:
 
 test_data:
     .db "yrokpstylc",0
+
+#include "z80float_relative/conversion/atof32.z80"
