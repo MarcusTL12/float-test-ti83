@@ -8,7 +8,7 @@
 ;   HL: points to scalar
 ;   DE: points to vector
 ;   IX: increment
-f32scal:
+sscal:
     push hl ; {0} Save pointer to scalar
 
     ; mul increment by 4 (sizeof f32)

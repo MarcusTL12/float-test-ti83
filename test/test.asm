@@ -39,7 +39,13 @@ main:
     ld hl, test_float5
     ld de, test_float1
     ld ix, 1
-    call f32scal
+    call sscal
+
+    ld bc, 2
+    ld hl, test_float5
+    ld de, test_float1
+    ld ix, 2
+    call sscal
 
     ld hl, test_float1
     ld bc, test_data
@@ -115,4 +121,4 @@ test_float5:
 #include "z80float_brass/conversion/atof32.z80"
 #include "z80float_brass/conversion/f32toa.z80"
 
-#include "blas/level1/f32scal.asm"
+#include "blas/level1/sscal.asm"
