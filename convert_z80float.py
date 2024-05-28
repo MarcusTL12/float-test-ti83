@@ -29,6 +29,7 @@ include_reg = re.compile(r"#include\s+\"(.+)\"\s*")
 use_label_reg = re.compile(r"(\+|-)_")
 def_label_reg = re.compile(r"_:")
 
+sub_reg = re.compile(r"sub\s+a,\s*(a|h|l|b|c|d|e)")
 
 def convert_file(filepath):
     relfile = replace_root_dir(filepath)
@@ -66,6 +67,8 @@ def convert_file(filepath):
                 have_labels_pointing_forward = True
 
             lines[i] = use_label_reg.sub(r"{\1}", line)
+
+        lines[i] = sub_reg.sub(r"sub \2", lines[i])
 
     with open(relfile, "w") as outfile:
         outfile.writelines(lines)

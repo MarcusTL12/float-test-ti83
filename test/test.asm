@@ -13,7 +13,7 @@ main:
     ld hl, test_float1
     ld de, test_float2
     ld bc, test_float3
-    call f32mul
+    call f32pow
 
     ld hl, test_float3
     ld bc, test_data
@@ -42,4 +42,4 @@ test_float3:
 #define char_NEG '-'
 
 #include "z80float_relative/conversion/f32toa.z80"
-#include "z80float_relative/f32/f32mul.z80"
+#include "z80float_relative/f32/f32pow.z80"
