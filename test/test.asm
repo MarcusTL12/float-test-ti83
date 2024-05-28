@@ -41,5 +41,5 @@ test_float3:
 #define scrap saferam4
 #define char_NEG '-'
 
-#include "z80float_relative/conversion/f32toa.z80"
-#include "z80float_relative/f32/f32pow.z80"
+#include "z80float_brass/conversion/f32toa.z80"
+#include "z80float_brass/f32/f32pow.z80"

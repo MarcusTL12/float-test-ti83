@@ -2,11 +2,13 @@ import os
 import re
 import shutil
 
+target_dir = "z80float_brass"
+
 
 def replace_root_dir(dir):
     parts = os.path.normpath(dir).split(os.sep)
     if parts[0] == "z80float":
-        parts[0] = "z80float_relative"
+        parts[0] = target_dir
     return "/".join(parts)
 
 
@@ -30,6 +32,7 @@ use_label_reg = re.compile(r"(\+|-)_")
 def_label_reg = re.compile(r"_:")
 
 sub_reg = re.compile(r"sub\s+a,\s*(a|h|l|b|c|d|e)")
+
 
 def convert_file(filepath):
     relfile = replace_root_dir(filepath)
@@ -68,13 +71,13 @@ def convert_file(filepath):
 
             lines[i] = use_label_reg.sub(r"{\1}", line)
 
-        lines[i] = sub_reg.sub(r"sub \2", lines[i])
+        lines[i] = sub_reg.sub(r"sub \1", lines[i])
 
     with open(relfile, "w") as outfile:
         outfile.writelines(lines)
 
 
-shutil.rmtree("z80float_relative")
+shutil.rmtree(target_dir, ignore_errors=True)
 
 
 for dir in dirs_to_convert:
