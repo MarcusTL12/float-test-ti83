@@ -1,5 +1,5 @@
-#ifndef included_f32scal
-#define included_f32scal
+#ifndef included_sscal
+#define included_sscal
 
 #include "z80float_brass/f32/f32mul.z80"
 
@@ -25,8 +25,8 @@ sscal:
     push ix ; {1} Save increment on stack
 
     ; Perform mul
-    push de ; {2}
-    pop bc ; {2}
+    ld b, d
+    ld c, e
     call f32mul
 
     ; Increment de with increment
