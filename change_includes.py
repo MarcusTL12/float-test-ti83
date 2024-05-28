@@ -24,17 +24,7 @@ for dir in dirs_to_convert:
             file_dict[file] = f"{relroot}/{file}"
 
 
-r = re.compile(r"#include\s+\"(.+)\"\s*")
-
-
-def convert_line(line: str):
-    m = r.match(line)
-
-    if m is not None:
-        if m.group(1) in file_dict:
-            return f"#include \"{file_dict[m.group(1)]}\"\n"
-
-    return line
+include_reg = re.compile(r"#include\s+\"(.+)\"\s*")
 
 
 def convert_file(filepath):
@@ -45,9 +35,23 @@ def convert_file(filepath):
     os.makedirs(newdir, exist_ok=True)
 
     with open(filepath) as infile:
-        with open(relfile, "w") as outfile:
-            for line in infile:
-                outfile.write(convert_line(line))
+        lines = infile.readlines()
+
+    last_label = 0
+
+    for i in range(len(lines)):
+        line = lines[i]
+        m = include_reg.match(line)
+
+        if m is not None:
+            if m.group(1) in file_dict:
+                lines[i] = f"#include \"{file_dict[m.group(1)]}\"\n"
+
+        if line.startswith("_:"):
+            pass
+
+    with open(relfile, "w") as outfile:
+        outfile.writelines(lines)
 
 
 for dir in dirs_to_convert:
