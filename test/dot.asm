@@ -3,8 +3,6 @@
 title:
     .db "test sdot",0
 
-#define vec_y vec_x + 4 * 4
-
 main:
     bcall(_clrscrf)
     bcall(_homeup)
@@ -17,15 +15,20 @@ main:
     bcall(_newline)
     bcall(_getkey) ; Pause
 
+    ld b, 10
+    -:
+    push bc
     ld hl, float_out
     push hl
-    ld bc, 4
+    ld bc, 2500
     ld hl, vec_x
-    ld de, vec_x + 4
-    ld ix, 2
+    ld de, vec_x + 2500 * 4
+    ld ix, 1
     push ix
-    or a
+    scf
     call sdot
+    pop bc
+    djnz {-}
 
     ld hl, float_out
     ld bc, str_buf
@@ -42,7 +45,7 @@ str_buf:
     .db "xxxxxxxxxxxxxxxxxxxx",0
 
 vec_x:
-#incbin "test_data/randn8.dat"
+#incbin "test_data/randn5000.dat"
 
 float_out:
     .dw f5c3h,4048h
