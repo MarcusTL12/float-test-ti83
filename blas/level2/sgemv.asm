@@ -31,10 +31,11 @@ sgemv:
     ; | ret   | <- (ix)
 
     ld ix, 0
+    add ix, sp
 
     ; Cleanup stack and return
     pop hl ; get return address
-    ld bc, 16
+    ld bc, 14
     add ix, bc
     ld sp, ix ; make ix point top bottom of stack
     ex (sp), hl ; put return address at bottom of stack
