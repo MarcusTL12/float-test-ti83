@@ -21,7 +21,10 @@ main:
     push hl
     ld bc, 4
     ld hl, vec_x
-    ld de, vec_y
+    ld de, vec_x + 4
+    ld ix, 2
+    push ix
+    or a
     call sdot
 
     ld hl, float_out
