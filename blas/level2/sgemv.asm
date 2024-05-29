@@ -20,15 +20,15 @@ sgemv:
 
     ; Stack on entry
     ;
-    ; | m     | <- (ix + 16)
-    ; | n     | <- (ix + 14)
-    ; | alpha | <- (ix + 12)
-    ; | ret   | <- (ix + 10)
-    ; | incx  | <- (ix + 8)
-    ; | beta  | <- (ix + 6)
-    ; | incy  | <- (ix + 4)
-    ; | lda   | <- (ix + 2)
     ; | ret   | <- (ix)
+    ; | lda   | <- (ix + 2)
+    ; | incy  | <- (ix + 4)
+    ; | beta  | <- (ix + 6)
+    ; | incx  | <- (ix + 8)
+    ; | ret   | <- (ix + 10)
+    ; | alpha | <- (ix + 12)
+    ; | n     | <- (ix + 14)
+    ; | m     | <- (ix + 16)
 
     ld ix, 0
     add ix, sp
