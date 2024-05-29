@@ -10,94 +10,120 @@
 ;   HL:         points to vector x
 ;   DE:         points to vector y
 ;   IX:         increment x
-;   IY:         increment y
+;   stack 1:    increment y
 saxpy:
-    ; Retrieve vector y in stack:
+    ; Get stuff out of stack
     di
     exx
     pop hl ; get return address
-    ex (sp), hl ; swap pointer with ret
-    ld (saxpy_scal_buf), hl ; Put pointer in buf
+    pop de ; inc y
+    ex (sp), hl ; swap a with ret
+    push hl
+    push de
+    push ix ; inc x
     exx
     ei
 
+    ; Make space for f32 buffer on stack
+    push hl
+    push hl
+
+    ; point ix to top of stack
+    ld ix, 0
+    add ix, sp
+
+    ; Stack variables:
+    ;
+    ; | buf      | <- (ix)
+    ; | buf      |
+    ; | inc x    | <- (ix + 4)
+    ; | inc y    | <- (ix + 6)
+    ; | scalar a | <- (ix + 8)
+    ; | ret      | <- (ix + 10)
+
+    ; Register variables:
+    ;
+    ; HL: x
+    ; DE: y
+    ; BC: counter
+    ; IX: base pointer
+
     push hl ; {0} Save pointer to x
 
-    ; mul inc x by 4 (sizeof f32)
-    push ix
-    pop hl
-    add hl, hl
-    add hl, hl
-    push hl
-    pop ix
+    ; mul inc x and inc y by 4 (sizeof f32)
+    ; inc x:
+    ld l, (ix + 4) \ ld h, (ix + 5)
+    add hl, hl \ add hl, hl
+    ld (ix + 4), l \ ld (ix + 5), h
 
-    ; mul inc y by 4 (sizeof f32)
-    push iy
-    pop hl
-    add hl, hl
-    add hl, hl
-    push hl
-    pop iy
+    ; inc y:
+    ld l, (ix + 6) \ ld h, (ix + 7)
+    add hl, hl \ add hl, hl
+    ld (ix + 6), l \ ld (ix + 7), h
 
     pop hl ; {0} restore x
 
--:
-    push bc ; {0}
-    push ix ; {1}
-    push iy ; {2} Save increments on stack
+    ; Loop
+    -:
+        push bc ; {0}
+        push de ; {1} y
 
-    push de ; {3} y
 
-    ; Perform mul x * a -> buf
-    ld de, (saxpy_scal_buf)
-    ld bc, saxpy_buf
-    call f32mul
+        ; Perform mul x * a -> buf
 
-    pop de ; {3} y
-    push hl ; {3} a
+        ; Load pointer to scalar a into de
+        ld e, (ix + 8) \ ld d, (ix + 9)
 
-    ; Perform add buf + y -> y
-    ld hl, saxpy_buf
-    ld b, d
-    ld c, e
-    call f32add
+        push ix \ pop bc ; point bc to buf on stack
 
-    pop hl ; {3} a
+        push ix
+        call f32mul
+        pop ix
 
-    ; Increment y with inc y
-    ex (sp), hl ; swap inc y (on stack) with x
-    ex de, hl
-    add hl, de
-    ex de, hl
-    ex (sp), hl ; swap back
 
-    pop iy ; {2}
+        pop de ; {1} y
+        push hl ; {1} x
 
-    ; Increment x with inc x
-    ex de, hl
-    ex (sp), hl
-    ex de, hl
-    add hl, de
-    ex de, hl
-    ex (sp), hl
 
-    pop ix ; {1}
+        ; Perform add buf + y -> y
+        push ix \ pop hl
+        ld b, d \ ld c, e ; bc = de
+        push ix
+        call f32add
+        pop ix
 
-    ; Loop logic
-    pop bc ; {0}
-    xor a
-    dec bc
-    or b
-    jr nz, {-}
-    or c
-    jr nz, {-}
+
+        pop hl ; {1} x
+
+
+        ; Increment x with inc x
+        ld c, (ix + 4) \ ld b, (ix + 5)
+        add hl, bc
+
+        ; Increment y with inc y
+        ld c, (ix + 6) \ ld b, (ix + 7)
+        ex de, hl
+        add hl, bc
+        ex de, hl
+
+        ; Loop logic
+        pop bc ; {0}
+        xor a
+        dec bc
+        or b
+        jr nz, {-}
+        or c
+        jr nz, {-}
+
+    ; Cleanup with pop (10 * N = 50 cc)
+    ; pop af \ pop af \ pop af \ pop af \ pop af
+
+    ; Cleanup with math (10 + 15 + 10 = 35 cc)
+    ; Use this for 4 or more things on stack
+    ld bc, 10
+    add ix, bc
+    ld sp, ix
 
     ret
-
-saxpy_buf:
-    .block 4
-
-saxpy_scal_buf:
-    .block 2
 
 #endif

@@ -35,16 +35,14 @@ main:
     ld bc, test_float5
     call atof32
 
-    ; push iy
-    ld bc, 2
+    ld bc, 2            ; n = 2
     ld hl, test_float5
-    push hl
-    ld hl, test_float1
-    ld de, test_float3
-    ; ld ix, 1
-    ; ld iy, 1
-    call saxpy1
-    ; pop iy
+    push hl             ; a
+    ld hl, test_float1  ; x
+    ld de, test_float2  ; y
+    ld ix, 2            ; inc x
+    push ix             ; inc y = inc x
+    call saxpy
 
     ld hl, test_float1
     ld bc, test_data
@@ -120,4 +118,4 @@ test_float5:
 #include "z80float_brass/conversion/atof32.z80"
 #include "z80float_brass/conversion/f32toa.z80"
 
-#include "blas/level1/saxpy1.asm"
+#include "blas/level1/saxpy.asm"
