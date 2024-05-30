@@ -60,9 +60,25 @@ sgemv:
 
     jr nz, {+} ; if beta == 0
 
+        ; bc = 4 * m
+        ex de, hl
+        ld l, (ix + 18) \ ld h, (ix + 19)
+        add hl, hl \ add hl, hl
+        ld c, l \\ ld b, h
+        ex de, hl
+
+        xor a
+
         ; set to 0 loop
         -:
+            ld (hl), a
+            inc hl
 
+            dec bc
+            or b
+            jr nz, {-}
+            or c
+            jr nz, {-}
 
     jr {++} \ +: ; elseif beta != 0
 
