@@ -58,11 +58,13 @@ sgemv:
 
     pop ix \ pop hl \ push hl ; hl -> y
 
+    ; Common two first lines in both branches
+    ex de, hl
+    ld l, (ix + 18) \ ld h, (ix + 19)
+
     jr nz, {+} ; if beta == 0
 
         ; bc = 4 * m
-        ex de, hl
-        ld l, (ix + 18) \ ld h, (ix + 19)
         add hl, hl \ add hl, hl
         ld c, l \\ ld b, h
         ex de, hl
@@ -82,8 +84,15 @@ sgemv:
 
     jr {++} \ +: ; elseif beta != 0
 
-
+        ; bc = m
+        ld c, l \\ ld b, h
+        push ix
+        push hl
+        ld l, (ix + 6) \ ld h, (ix + 7) ; HL -> beta
+        push hl \ pop ix
+        pop hl
         call sscal
+        pop ix
 
     ++:
 
