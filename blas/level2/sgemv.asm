@@ -37,10 +37,9 @@ sgemv:
     ; | incy  | <- (ix + 6)
     ; | beta  | <- (ix + 8)
     ; | incx  | <- (ix + 10)
-    ; | ret   | <- (ix + 12)
-    ; | alpha | <- (ix + 14)
-    ; | n     | <- (ix + 16)
-    ; | m     | <- (ix + 18)
+    ; | alpha | <- (ix + 12)
+    ; | n     | <- (ix + 14)
+    ; | m     | <- (ix + 16)
 
     ; Registers
     ;
@@ -109,7 +108,7 @@ sgemv:
 
         push bc ; dest
         ld c, (ix + 6) \ ld b, (ix + 7) \ push bc ; incy
-        ld c, (ix + 16) \ ld b, (ix + 17) ; n
+        ld c, (ix + 14) \ ld b, (ix + 15) ; n
         push hl \ ld l, (ix + 10) \ ld h, (ix + 11)
         push hl \ pop ix \ pop hl ; incx
         ; HL, DE already set
@@ -133,10 +132,10 @@ sgemv:
         pop de
 
         ; Loop logic
-        ld c, (ix + 18) \ ld b, (ix + 19)
+        ld c, (ix + 16) \ ld b, (ix + 17)
         xor a
         dec bc
-        ld (ix + 18), c \ ld (ix + 19), b
+        ld (ix + 16), c \ ld (ix + 17), b
         or b
         jr nz, {-}
         or c
@@ -144,7 +143,7 @@ sgemv:
 
     ; Cleanup stack and return
     pop hl \ pop hl ; get return address
-    ld bc, 14
+    ld bc, 12
     add ix, bc
     ld sp, ix ; make ix point top bottom of stack
     ex (sp), hl ; put return address at bottom of stack
