@@ -65,7 +65,7 @@ sgemv:
 
         ; bc = 4 * m
         add hl, hl \ add hl, hl
-        ld c, l \\ ld b, h
+        ld c, l \ ld b, h
         ex de, hl
 
         xor a
