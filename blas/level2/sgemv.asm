@@ -24,6 +24,7 @@ sgemv:
 
     ex (sp), ix
     push ix
+    push hl \ push hl
     push af
 
     ld ix, 0
@@ -32,14 +33,16 @@ sgemv:
     ; Stack
     ;
     ; | N/T   | <- (ix)
-    ; | ret   | <- (ix + 2)
-    ; | lda   | <- (ix + 4)
-    ; | incy  | <- (ix + 6)
-    ; | beta  | <- (ix + 8)
-    ; | incx  | <- (ix + 10)
-    ; | alpha | <- (ix + 12)
-    ; | n     | <- (ix + 14)
-    ; | m     | <- (ix + 16)
+    ; | buf   | <- (ix + 2)
+    ; | buf   |
+    ; | ret   | <- (ix + 6)
+    ; | lda   | <- (ix + 8)
+    ; | incy  | <- (ix + 10)
+    ; | beta  | <- (ix + 12)
+    ; | incx  | <- (ix + 14)
+    ; | alpha | <- (ix + 16)
+    ; | n     | <- (ix + 18)
+    ; | m     | <- (ix + 20)
 
     ; Registers
     ;
@@ -51,7 +54,7 @@ sgemv:
     ; If beta == 0, set y to zero, else multiply existing data with beta
     push hl \ push de \ push bc \ push ix
 
-    ld l, (ix + 8) \ ld h, (ix + 9)
+    ld l, (ix + 12) \ ld h, (ix + 13)
     ld de, zero_f32
     call f32cmp
 
@@ -59,7 +62,7 @@ sgemv:
 
     ; Common two first lines in both branches
     ex de, hl
-    ld l, (ix + 18) \ ld h, (ix + 19)
+    ld l, (ix + 20) \ ld h, (ix + 21)
 
     jr nz, {+} ; if beta == 0
 
@@ -87,7 +90,7 @@ sgemv:
         ld c, l \\ ld b, h
         push ix
         push hl
-        ld l, (ix + 6) \ ld h, (ix + 7) ; HL -> beta
+        ld l, (ix + 10) \ ld h, (ix + 11) ; HL -> beta
         push hl \ pop ix
         pop hl
         call sscal
@@ -107,9 +110,9 @@ sgemv:
         push hl \ push de \ push bc \ push ix
 
         push bc ; dest
-        ld c, (ix + 6) \ ld b, (ix + 7) \ push bc ; incy
-        ld c, (ix + 14) \ ld b, (ix + 15) ; n
-        push hl \ ld l, (ix + 10) \ ld h, (ix + 11)
+        ld c, (ix + 10) \ ld b, (ix + 11) \ push bc ; incy
+        ld c, (ix + 18) \ ld b, (ix + 19) ; n
+        push hl \ ld l, (ix + 14) \ ld h, (ix + 15)
         push hl \ pop ix \ pop hl ; incx
         ; HL, DE already set
         scf ; Add to location
@@ -126,16 +129,16 @@ sgemv:
         jr c, {+} ; if N
             ld de, 4
         jr {++} \ +: ; elseif T
-            ld e, (ix + 4) \ ld d, (ix + 5)
+            ld e, (ix + 8) \ ld d, (ix + 9)
         ++:
         add hl, de
         pop de
 
         ; Loop logic
-        ld c, (ix + 16) \ ld b, (ix + 17)
+        ld c, (ix + 20) \ ld b, (ix + 21)
         xor a
         dec bc
-        ld (ix + 16), c \ ld (ix + 17), b
+        ld (ix + 20), c \ ld (ix + 21), b
         or b
         jr nz, {-}
         or c
@@ -143,7 +146,7 @@ sgemv:
 
     ; Cleanup stack and return
     pop hl \ pop hl ; get return address
-    ld bc, 12
+    ld bc, 16
     add ix, bc
     ld sp, ix ; make ix point top bottom of stack
     ex (sp), hl ; put return address at bottom of stack
