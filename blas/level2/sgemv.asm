@@ -6,6 +6,8 @@
 #include "blas/level1/sdot.asm"
 #include "blas/level1/sscal.asm"
 
+#include "z80float_brass/f32/f32add.z80"
+#include "z80float_brass/f32/f32mul.z80"
 #include "z80float_brass/f32/f32cmp.z80"
 
 ; Inputs:
@@ -109,17 +111,41 @@ sgemv:
         ; Save registers
         push hl \ push de \ push bc \ push ix
 
-        push bc ; dest
+        ; TODO check that inc makes sense (I think I did the wrong one)
+
+        push ix \ pop bc \ inc bc \ inc bc \ push bc ; dest = buf
         ld c, (ix + 10) \ ld b, (ix + 11) \ push bc ; incy
         ld c, (ix + 18) \ ld b, (ix + 19) ; n
         push hl \ ld l, (ix + 14) \ ld h, (ix + 15)
         push hl \ pop ix \ pop hl ; incx
         ; HL, DE already set
-        scf ; Add to location
+        or a ; overwrite location
         call sdot
 
-        ; Restore registers
-        pop ix \ pop bc \ pop de \ pop hl
+        ; Restore ix
+        pop ix
+
+        ; mul buf by alpha and add to y
+
+        ld l, (ix + 16) \ ld h, (ix + 17) ; hl -> alpha
+        push ix \ pop de \ inc de \ inc de ; de -> buf
+        ld c, e \ ld b, d ; bc -> buf
+        push ix
+        call f32mul
+        pop ix
+
+        ; restore bc = y
+        pop bc
+
+        push ix \ pop hl \ inc hl \ inc hl ; hl -> buf
+        ld e, c \ ld d, b ; de -> y
+        ; bc -> y (already set)
+        push ix
+        call f32add
+        pop ix
+
+        ; restore rest of registers
+         pop de \ pop hl
 
         ; Increment pointer to A by one row
         ; If not trans inc is sizeof(f32), else inc is lda
