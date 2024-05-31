@@ -83,10 +83,9 @@ sgemv:
         ld c, l \ ld b, h
         ex de, hl
 
-        xor a
-
         ; set to 0 loop
         -:
+            xor a
             ld (hl), a
             inc hl
 
@@ -179,7 +178,7 @@ sgemv:
 
     ; Cleanup stack and return
     ld l, (ix + 8) \ ld h, (ix + 9) ; get return address
-    ld bc, 22
+    ld bc, 20
     add ix, bc
     ld sp, ix ; make ix point top bottom of stack
     ex (sp), hl ; put return address at bottom of stack

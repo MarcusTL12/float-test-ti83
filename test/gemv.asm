@@ -28,7 +28,7 @@ main:
     ld hl, 1        \ push hl   ; incy
 
     ld hl, rand_data            ; A
-    ld ix, 1                    ; lda
+    ld ix, 2                    ; lda
     ld de, rand_data + width * height * 4 ; x
     ld bc, vec_out              ; y
 
