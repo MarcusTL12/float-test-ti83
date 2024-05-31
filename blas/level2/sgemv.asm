@@ -24,27 +24,37 @@
 ;   stack 5   : incy
 sgemv:
 
-    ex (sp), ix
-    push ix
-    push hl \ push hl
-    push af
+    di \ exx
+    ld hl, 1
+    jr c, {+} ; if N
+        ; inc row = lda
+        ; inc col = 1
+        push ix \ push hl
+    jr {++} \ +: ; elseif T
+        ; inc row = 1
+        ; inc col = lda
+        push hl \ push ix
+    ++:
+    exx \ ei
+
+    push hl \ push hl ; Make buf space
 
     ld ix, 0
     add ix, sp
 
     ; Stack
     ;
-    ; | N/T   | <- (ix)
-    ; | buf   | <- (ix + 2)
-    ; | buf   |
-    ; | ret   | <- (ix + 6)
-    ; | lda   | <- (ix + 8)
-    ; | incy  | <- (ix + 10)
-    ; | beta  | <- (ix + 12)
-    ; | incx  | <- (ix + 14)
-    ; | alpha | <- (ix + 16)
-    ; | n     | <- (ix + 18)
-    ; | m     | <- (ix + 20)
+    ; | buf     | <- (ix)
+    ; | buf     |
+    ; | inc col | <- (ix + 4)
+    ; | inc row | <- (ix + 6)
+    ; | ret     | <- (ix + 8)
+    ; | incy    | <- (ix + 10)
+    ; | beta    | <- (ix + 12)
+    ; | incx    | <- (ix + 14)
+    ; | alpha   | <- (ix + 16)
+    ; | n       | <- (ix + 18)
+    ; | m       | <- (ix + 20)
 
     ; Registers
     ;
@@ -114,10 +124,10 @@ sgemv:
         ; TODO check that inc makes sense (I think I did the wrong one)
 
         push ix \ pop bc \ inc bc \ inc bc \ push bc ; dest = buf
-        ld c, (ix + 10) \ ld b, (ix + 11) \ push bc ; incy
+        ld c, (ix + 14) \ ld b, (ix + 15) \ push bc ; incy(dot) = incx(here)
         ld c, (ix + 18) \ ld b, (ix + 19) ; n
-        push hl \ ld l, (ix + 14) \ ld h, (ix + 15)
-        push hl \ pop ix \ pop hl ; incx
+        ; incx(dot) = inc row
+        push hl \ ld l, (ix + 6) \ ld h, (ix + 7) \ push hl \ pop ix \ pop hl
         ; HL, DE already set
         or a ; overwrite location
         call sdot
@@ -144,20 +154,17 @@ sgemv:
         call f32add
         pop ix
 
-        ; restore rest of registers
-         pop de \ pop hl
+        ; Restore hl, and move de one down
+        pop hl \ ex (sp), hl
 
         ; Increment pointer to A by one row
-        ; If not trans inc is sizeof(f32), else inc is lda
+        ; If not trans inc is 1, else inc is lda
 
-        pop af \ push af ; get carry flag for N/T
-        push de
-        jr c, {+} ; if N
-            ld de, 4
-        jr {++} \ +: ; elseif T
-            ld e, (ix + 8) \ ld d, (ix + 9)
-        ++:
-        add hl, de
+        ex de, hl
+        ld l, (ix + 4) \ ld h, (ix + 5)
+        add hl, hl \ add hl, hl ; hl = inc col * 4
+        add hl, de ; hl = A + 4 * inc col
+
         pop de
 
         ; Loop logic
@@ -171,8 +178,8 @@ sgemv:
         jr nz, {-}
 
     ; Cleanup stack and return
-    pop hl \ pop hl ; get return address
-    ld bc, 16
+    ld l, (ix + 8) \ ld h, (ix + 9) ; get return address
+    ld bc, 22
     add ix, bc
     ld sp, ix ; make ix point top bottom of stack
     ex (sp), hl ; put return address at bottom of stack
