@@ -123,7 +123,7 @@ sgemv:
 
         ; TODO check that inc makes sense (I think I did the wrong one)
 
-        push ix \ pop bc \ inc bc \ inc bc \ push bc ; dest = buf
+        push ix ; dest = buf
         ld c, (ix + 14) \ ld b, (ix + 15) \ push bc ; incy(dot) = incx(here)
         ld c, (ix + 18) \ ld b, (ix + 19) ; n
         ; incx(dot) = inc row
